@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "cd publisher && node send.js",
-    "subscribe": "cd consumer && node receive.js"
+    "publish": "cd src/publisher && node send.js",
+    "subscribe": "cd src/consumer && node receive.js"
   },
   "author": "Gabriel Lundgren",
   "license": "MIT"
