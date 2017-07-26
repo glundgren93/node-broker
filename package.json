@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "publish": "cd src/publisher && node send.js",
+    "publish": "cd src/producer && node send.js",
     "subscribe": "cd src/consumer && node receive.js"
   },
   "author": "Gabriel Lundgren",

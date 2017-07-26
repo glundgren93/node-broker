@@ -1,4 +1,4 @@
 module.exports = {
   AMPQ_URL: "amqp://localhost",
-  QUEUE_NAME: "testQueue"
+  EXCHANGE_NAME: "testExchange"
 };

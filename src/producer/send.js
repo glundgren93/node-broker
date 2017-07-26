@@ -9,11 +9,13 @@ let obj = {
 
 amqp.connect(config.AMPQ_URL, (err, conn) => {
   conn.createChannel((err, ch) => {
-    let q = config.QUEUE_NAME;
+    let ex = config.EXCHANGE_NAME;
 
-    ch.assertQueue(q);
-    // Send a single message with the content given as a buffer to the specific queue named
-    ch.sendToQueue(q, Buffer.from(JSON.stringify(obj)));
+    // create fanout exchange
+    ch.assertExchange(ex, "fanout", { durable: false });
+
+    // publish messages to exchange
+    ch.publish(ex, "", Buffer.from(JSON.stringify(obj)));
     console.log("%s sent", obj.name);
   });
 });
