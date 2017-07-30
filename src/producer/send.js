@@ -24,7 +24,7 @@ connection
           });
         });
       })
-      .finally(function() {
+      .finally(() => {
         conn.close();
       });
   })
