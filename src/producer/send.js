@@ -1,21 +1,31 @@
-const amqp = require("amqplib/callback_api");
+const axios = require("axios");
 
+const { connection } = require("../config/amqpConnection");
 const config = require("../config/config");
 
-let obj = {
-  test: "lala",
-  name: "gaga"
-};
+connection
+  .then(conn => {
+    return conn
+      .createChannel()
+      .then(ch => {
+        let ex = config.EXCHANGE_NAME;
+        var ok = ch.assertExchange(ex, "fanout", { durable: false });
+        return ok.then(() => {
+          const request = axios.get(config.API_REQUEST_URL);
 
-amqp.connect(config.AMPQ_URL, (err, conn) => {
-  conn.createChannel((err, ch) => {
-    let ex = config.EXCHANGE_NAME;
+          return request.then(response => {
+            if (response.data.status !== "ok") {
+              throw new Error("There was an error making the request");
+            }
 
-    // create fanout exchange
-    ch.assertExchange(ex, "fanout", { durable: false });
-
-    // publish messages to exchange
-    ch.publish(ex, "", Buffer.from(JSON.stringify(obj)));
-    console.log("%s sent", obj.name);
-  });
-});
+            ch.publish(ex, "", Buffer.from(JSON.stringify(response.data)));
+            console.log("Articles sent from %s", response.data.source);
+            return ch.close();
+          });
+        });
+      })
+      .finally(function() {
+        conn.close();
+      });
+  })
+  .catch(console.warn);

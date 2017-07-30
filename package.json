@@ -8,5 +8,9 @@
     "subscribe": "cd src/consumer && node receive.js"
   },
   "author": "Gabriel Lundgren",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "amqplib": "^0.5.1",
+    "axios": "^0.16.2"
+  }
 }
