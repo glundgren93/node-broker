@@ -1,40 +1,25 @@
 const amqp = require("amqplib");
 
 const config = require("../config/config");
-const { connection } = require("../config/amqpConnection");
 
-connection
-  .then(conn => {
-    return conn.createChannel().then(ch => {
-      let ex = config.EXCHANGE_NAME;
-      // create fanout exchange
-      const exchange = ch.assertExchange(ex, "fanout", { durable: false });
-
-      return exchange.then(() => {
-        // when we supply queue name as an empty string, we create a non-durable queue with a generated name
-        // when the connection that declared it closes, the queue will be deleted because it is declared as exclusive.
-        const queue = ch.assertQueue("", { exclusive: true });
-
-        return queue.then(q => {
-          console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
-
-          // tell exchange to send messages to our queue
-          // relationship between exchange and a queue is called BINDING
-          // exchange will append messages to our queue
-          const boundQueue = ch.bindQueue(q.queue, ex, ""); // #bindQueue(queue, source, pattern, [args])
-
-          return boundQueue.then(() => {
-            ch.consume(
-              q.queue,
-              msg => {
-                let data = JSON.parse(msg.content);
-                console.log("%s received", data.source);
-              },
-              { noAck: false }
-            );
-          });
-        });
-      });
-    });
-  })
-  .catch(console.warn);
+async function receiveMessage() {
+  try {
+    const conn = await amqp.connect(config.AMQP_URL); // create connection
+    const channel = await conn.createChannel(); // create channel
+    await channel.assertExchange(config.EXCHANGE_NAME, "fanout", { durable: false }); // create fanout exchange
+    const q = await channel.assertQueue("", { exclusive: true }); // create non-durable queue with a generated name
+    console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", q.queue);
+    const boundQueue = await channel.bindQueue(q.queue, config.EXCHANGE_NAME, ""); // create relationship between exchange and queue
+    await channel.consume(
+      q.queue,
+      msg => {
+        let data = JSON.parse(msg.content);
+        console.log("%s received", data.source);
+      },
+      { noAck: false }
+    );
+  } catch (e) {
+    console.warn(e);
+  }
+}
+receiveMessage();
